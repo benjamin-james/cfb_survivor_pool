@@ -1,0 +1,6 @@
+[run]
+source = cfb_survivor_pool
+omit = 
+    tests/*
+    autoapp.py
+
