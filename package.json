@@ -21,9 +21,9 @@
     "url": "git+https://github.com/benjamin-james/cfb_survivor_pool.git"
   },
   "author": "Benjamin James",
-  "license": "MIT",
+  "license": "AGPL3",
   "engines": {
-    "node": ">=16"
+    "node": ">=14"
   },
   "bugs": {
     "url": "https://github.com/benjamin-james/cfb_survivor_pool/issues"
