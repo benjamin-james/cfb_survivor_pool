@@ -2,6 +2,11 @@
 
 College Football Survivor Pool
 
+## Setup
+
+Environment variables **need** to be set in `.env`. A template is set in `.env.example`
+
+Additionally, if running as a non-root user, must use `DOCKER_USER` environment variable before running `docker-compose`
 ## Docker Quickstart
 
 This app can be run completely using `Docker` and `docker-compose`. **Using Docker is recommended, as it guarantees the application is run using compatible versions of Python and Node**.
