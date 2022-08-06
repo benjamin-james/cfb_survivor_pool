@@ -230,3 +230,7 @@ Deployment by using [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cl
     ```bash
     git push heroku main
     ```
+## Schema
+User
+* Create/Edit Entry
+* View Standings
