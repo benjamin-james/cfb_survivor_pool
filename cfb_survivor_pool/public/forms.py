@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """Public forms."""
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, StringField
+from wtforms import PasswordField, StringField, SubmitField
 from wtforms.validators import DataRequired
 
 from cfb_survivor_pool.user.models import User
-
 
 class LoginForm(FlaskForm):
     """Login form."""
@@ -37,3 +36,8 @@ class LoginForm(FlaskForm):
             self.username.errors.append("User not activated")
             return False
         return True
+
+class EntryForm(FlaskForm):
+    title = StringField("Title")
+    # username = StringField("Username", validators=[DataRequired()])
+    # password = PasswordField("Password", validators=[DataRequired()])

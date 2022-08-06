@@ -234,3 +234,12 @@ Deployment by using [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cl
 User
 * Create/Edit Entry
 * View Standings
+
+CFBD
+* GET request for updating standings
+* GET re
+
+Pages:
+/standings
+/schedule
+/edit_entry

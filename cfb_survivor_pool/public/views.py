@@ -12,7 +12,7 @@ from flask import (
 from flask_login import login_required, login_user, logout_user
 
 from cfb_survivor_pool.extensions import login_manager
-from cfb_survivor_pool.public.forms import LoginForm
+from cfb_survivor_pool.public.forms import LoginForm, EntryForm
 from cfb_survivor_pool.user.forms import RegisterForm
 from cfb_survivor_pool.user.models import User
 from cfb_survivor_pool.utils import flash_errors
@@ -24,6 +24,7 @@ blueprint = Blueprint("public", __name__, static_folder="../static")
 def load_user(user_id):
     """Load user by ID."""
     return User.get_by_id(int(user_id))
+
 
 
 @blueprint.route("/", methods=["GET", "POST"])
@@ -42,6 +43,20 @@ def home():
             flash_errors(form)
     return render_template("public/home.html", form=form)
 
+
+@blueprint.route("/entry", methods=["GET", "POST"])
+@login_required
+def entry():
+    form = EntryForm()
+    is_playing = [('Illinois', 'Week 1'), ('Illinois', 'Week 5'), ('Illinois', 'Week 6'), ('Illinois', 'Week 7'), ('Illinois', 'Week 9'), ('Illinois', 'Week 10'), ('Illinois', 'Week 11'), ('Illinois', 'Week 12'), ('Illinois', 'Week 13'), ('Indiana', 'Week 1'), ('Indiana', 'Week 5'), ('Indiana', 'Week 6'), ('Indiana', 'Week 7'), ('Indiana', 'Week 8'), ('Indiana', 'Week 10'), ('Indiana', 'Week 11'), ('Indiana', 'Week 12'), ('Indiana', 'Week 13'), ('Iowa', 'Week 4'), ('Iowa', 'Week 5'), ('Iowa', 'Week 6'), ('Iowa', 'Week 8'), ('Iowa', 'Week 9'), ('Iowa', 'Week 10'), ('Iowa', 'Week 11'), ('Iowa', 'Week 12'), ('Iowa', 'Week 13'), ('Maryland', 'Week 4'), ('Maryland', 'Week 5'), ('Maryland', 'Week 6'), ('Maryland', 'Week 7'), ('Maryland', 'Week 8'), ('Maryland', 'Week 10'), ('Maryland', 'Week 11'), ('Maryland', 'Week 12'), ('Maryland', 'Week 13'), ('Michigan', 'Week 4'), ('Michigan', 'Week 5'), ('Michigan', 'Week 6'), ('Michigan', 'Week 7'), ('Michigan', 'Week 9'), ('Michigan', 'Week 10'), ('Michigan', 'Week 11'), ('Michigan', 'Week 12'), ('Michigan', 'Week 13'), ('Michigan State', 'Week 4'), ('Michigan State', 'Week 5'), ('Michigan State', 'Week 6'), ('Michigan State', 'Week 7'), ('Michigan State', 'Week 9'), ('Michigan State', 'Week 10'), ('Michigan State', 'Week 11'), ('Michigan State', 'Week 12'), ('Michigan State', 'Week 13'), ('Minnesota', 'Week 4'), ('Minnesota', 'Week 5'), ('Minnesota', 'Week 7'), ('Minnesota', 'Week 8'), ('Minnesota', 'Week 9'), ('Minnesota', 'Week 10'), ('Minnesota', 'Week 11'), ('Minnesota', 'Week 12'), ('Minnesota', 'Week 13'), ('Nebraska', 'Week 1'), ('Nebraska', 'Week 5'), ('Nebraska', 'Week 6'), ('Nebraska', 'Week 7'), ('Nebraska', 'Week 9'), ('Nebraska', 'Week 10'), ('Nebraska', 'Week 11'), ('Nebraska', 'Week 12'), ('Nebraska', 'Week 13'), ('Northwestern', 'Week 1'), ('Northwestern', 'Week 5'), ('Northwestern', 'Week 6'), ('Northwestern', 'Week 8'), ('Northwestern', 'Week 9'), ('Northwestern', 'Week 10'), ('Northwestern', 'Week 11'), ('Northwestern', 'Week 12'), ('Northwestern', 'Week 13'), ('Ohio State', 'Week 4'), ('Ohio State', 'Week 5'), ('Ohio State', 'Week 6'), ('Ohio State', 'Week 8'), ('Ohio State', 'Week 9'), ('Ohio State', 'Week 10'), ('Ohio State', 'Week 11'), ('Ohio State', 'Week 12'), ('Ohio State', 'Week 13'), ('Penn State', 'Week 1'), ('Penn State', 'Week 5'), ('Penn State', 'Week 7'), ('Penn State', 'Week 8'), ('Penn State', 'Week 9'), ('Penn State', 'Week 10'), ('Penn State', 'Week 11'), ('Penn State', 'Week 12'), ('Penn State', 'Week 13'), ('Purdue', 'Week 1'), ('Purdue', 'Week 5'), ('Purdue', 'Week 6'), ('Purdue', 'Week 7'), ('Purdue', 'Week 8'), ('Purdue', 'Week 10'), ('Purdue', 'Week 11'), ('Purdue', 'Week 12'), ('Purdue', 'Week 13'), ('Rutgers', 'Week 4'), ('Rutgers', 'Week 5'), ('Rutgers', 'Week 6'), ('Rutgers', 'Week 8'), ('Rutgers', 'Week 9'), ('Rutgers', 'Week 10'), ('Rutgers', 'Week 11'), ('Rutgers', 'Week 12'), ('Rutgers', 'Week 13'), ('Wisconsin', 'Week 4'), ('Wisconsin', 'Week 5'), ('Wisconsin', 'Week 6'), ('Wisconsin', 'Week 7'), ('Wisconsin', 'Week 8'), ('Wisconsin', 'Week 10'), ('Wisconsin', 'Week 11'), ('Wisconsin', 'Week 12'), ('Wisconsin', 'Week 13')]
+    teams = ['Illinois', 'Indiana', 'Iowa', 'Maryland', 'Michigan', 'Michigan State', 'Minnesota', 'Nebraska', 'Northwestern', 'Ohio State', 'Penn State', 'Purdue', 'Rutgers', 'Wisconsin']
+    weeks = ['Week 1', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13']
+    grid = []
+    checked = [("Nebraska", "Week 1"), ("Iowa", "Week 5")]
+    for team in teams:
+        for week in weeks:
+            grid.append((team, week, (team, week) in is_playing, (team, week) in checked))
+    return render_template("public/entry.html", grid=grid, teams=teams, weeks=weeks, form=form)
 
 @blueprint.route("/logout/")
 @login_required
