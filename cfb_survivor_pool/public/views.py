@@ -95,15 +95,6 @@ def about():
     form = LoginForm(request.form)
     return render_template("public/about.html", form=form)
 
-def grab_teams_games():
-    """Update games from CFBD"""
-    parser = CfbdParser(current_app.config["CFBD_API_KEY"])
-    teams = parser.teams()
-    # games = parser.games(year=datetime.utcnow().year)
-    #
-    # current_app.logger.info("%d games; %d teams" % (games.shape[0], teams.shape[0]))
-    return teams, None
-
 @blueprint.route("/teams")
 def get_teams():
     all_teams = db.session.query(Team).all()
