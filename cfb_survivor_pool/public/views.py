@@ -11,12 +11,15 @@ from flask import (
 )
 from flask_login import login_required, login_user, logout_user
 
-from cfb_survivor_pool.extensions import login_manager
+from cfb_survivor_pool.extensions import login_manager, db
 from cfb_survivor_pool.public.forms import LoginForm, EntryForm
+from cfb_survivor_pool.public.models import Team, Game
 from cfb_survivor_pool.user.forms import RegisterForm
 from cfb_survivor_pool.user.models import User
 from cfb_survivor_pool.utils import flash_errors
-
+from cfb_survivor_pool.cfbd_parser import CfbdParser
+from datetime import datetime
+from sqlalchemy import and_, or_
 blueprint = Blueprint("public", __name__, static_folder="../static")
 
 
@@ -55,6 +58,7 @@ def entry():
     checked = [("Nebraska", "Week 1"), ("Iowa", "Week 5")]
     for team in teams:
         for week in weeks:
+            ### TODO: check if current time allows pick
             grid.append((team, week, (team, week) in is_playing, (team, week) in checked))
     return render_template("public/entry.html", grid=grid, teams=teams, weeks=weeks, form=form)
 
@@ -90,3 +94,65 @@ def about():
     """About page."""
     form = LoginForm(request.form)
     return render_template("public/about.html", form=form)
+
+def grab_teams_games():
+    """Update games from CFBD"""
+    parser = CfbdParser(current_app.config["CFBD_API_KEY"])
+    teams = parser.teams()
+    # games = parser.games(year=datetime.utcnow().year)
+    #
+    # current_app.logger.info("%d games; %d teams" % (games.shape[0], teams.shape[0]))
+    return teams, None
+
+@blueprint.route("/teams")
+def get_teams():
+    all_teams = db.session.query(Team).all()
+    return render_template("public/teams.html", teams=[(t.id, t.abbreviation, t.classification, t.color, t.conference, t.logo, t.mascot, t.school) for t in all_teams])
+
+@blueprint.route("/games/")
+def get_games():
+    all_games = db.session.query(Game).all()
+    return render_template("public/games.html", games=[(g.id, g.home_id, g.away_id, g.home_points, g.away_points, g.home_team, g.away_team) for g in all_games])
+
+@blueprint.route("/update_teams_games/", methods=["GET"])
+def update_teams_games():
+    year = datetime.utcnow().year
+    if "year" in request.args and request.args["year"].isnumeric():
+        year = int(request.args["year"])
+    all_teams = db.session.query(Team).all()
+    if len(all_teams) == 0:
+        parser = CfbdParser(current_app.config["CFBD_API_KEY"])
+        for record in parser.teams().to_dict("r"):
+            item = Team(**record)
+            item.save(commit=False)
+        db.session.commit()
+        flash("Added new teams")
+        all_teams = db.session.query(Team).all()
+    all_ids = [x.id for x in all_teams]
+    ### For the games, we want to
+    ### 1. update when scores are changed
+    ### 2. insert when id is not in db so need to find when ID will be in DB
+    ###   A.
+    new_games = CfbdParser(current_app.config["CFBD_API_KEY"]).games(year=year)
+    new_games = new_games.loc[new_games["away_id"].isin(all_ids) &
+                              new_games["home_id"].isin(all_ids), :]
+    ### filter for games where we need to explicitly update
+    gid_list = new_games.loc[~new_games["away_points"].isna() & ~new_games["home_points"].isna(), :].index.values
+    ### 1. Find common games where score needs to be updated AND we have the score
+    for game in db.session.query(Game).filter(and_(Game.away_points is None,
+                                                   Game.home_points is None,
+                                                   Game.id.in_(gid_list))):
+        game.away_points = new_games.loc[game.id, "away_points"]
+        game.home_points = new_games.loc[game.id, "home_points"]
+        game.update(commit=False)
+        new_games.drop(game.id, inplace=True)
+    db.session.commit()
+    vgk = list(vars(Game).keys())
+    vgk.append("game_id")
+    for record in new_games.to_dict("r"):
+        record = {k: v for k, v in record.items() if k in vgk}
+        game = Game(**record)
+        db.session.merge(game)
+    db.session.commit()
+    all_games = db.session.query(Game).all()
+    return render_template("public/games.html", games=[(g.id, g.home_id, g.away_id, g.home_points, g.away_points, g.home_team, g.away_team) for g in all_games])

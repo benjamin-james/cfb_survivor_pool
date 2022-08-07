@@ -37,6 +37,7 @@ class LoginForm(FlaskForm):
             return False
         return True
 
+
 class EntryForm(FlaskForm):
     title = StringField("Title")
     # username = StringField("Username", validators=[DataRequired()])

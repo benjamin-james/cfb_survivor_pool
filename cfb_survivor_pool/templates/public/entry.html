@@ -3,11 +3,11 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script>
   function entryradio() {
-    var row, el;
+    var col, el;
     $("input[type=radio]").click(function() {
 	el = $(this);
-	row = el.data("row");
-	$("input[data-row=" + row + "]").prop("checked", false);
+	col = el.data("col");
+	$("input[data-col=" + col + "]").prop("checked", false);
 	el.prop("checked", true);
     });
 }
@@ -26,24 +26,23 @@
   <thead class="table-primary">
     <tr>
       <th scope="col">Team</th>
-      {% for team in teams %}
-        <th scope="col">{{ team }}</th>
+      {% for week in weeks %}
+        <th scope="col">{{ week }}</th>
       {% endfor %}
     </tr>
   </thead>
   <tbody>
-    {% for week in weeks %}
-    {% set outer_loop = loop %}
+    {% for team in teams %}
     <tr>
-      <th scope="row" class="table-primary" >{{ week }}</th>
-      {% for team in teams %}
+      <th scope="row" class="table-primary" >{{ team }}</th>
+      {% for week in weeks %}
       {% for t, w, present, chk in grid %}
       {% if t == team and w == week %}
         {% if present %}
           {% if chk %}
-          <td> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-row="{{team}}" aria-label="{{team}} {{week}}" checked></label></td>
+          <td> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}" checked></label></td>
           {% else %}
-          <td> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-row="{{team}}" aria-label="{{team}} {{week}}"></label></td>
+          <td> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}"></label></td>
 
           {% endif %}
       {% else %}
