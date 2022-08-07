@@ -1,6 +1,16 @@
 import re
 from functools import reduce
 from datetime import datetime
+
+def saturday_of(x, last=3):
+    from datetime import datetime, date
+    """split on wednesday-forward=3"""
+    if type(x) is datetime:
+        x = x.date()
+    x = x.toordinal()
+    div = (x - last) // 7
+    return date.fromordinal(7 * div + 6)
+
 class CfbdParser:
     def __init__(self, api_key=None):
         import cfbd

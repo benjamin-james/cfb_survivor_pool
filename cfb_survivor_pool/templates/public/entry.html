@@ -22,7 +22,7 @@
 <div class="form-check">
   <div class="row justify-content-center">
         <div class="col-auto">
-<table class="table table-striped table-bordered table-responsive">
+<table class="table table-bordered table-responsive">
   <thead class="table-primary">
     <tr>
       <th scope="col">Team</th>
@@ -36,21 +36,16 @@
     <tr>
       <th scope="row" class="table-primary" >{{ team }}</th>
       {% for week in weeks %}
-      {% for t, w, present, chk in grid %}
-      {% if t == team and w == week %}
-        {% if present %}
+        {% if (team, week) in grid %}
+          {% set mod, lthis, lthat, chk, conference = grid[team, week] %}
           {% if chk %}
-          <td> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}" checked></label></td>
+          <td class="{{conference}}"> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}" checked>vs <img src="{{lthat}}" style="width:50px;height:50px;"></label></td>
           {% else %}
-          <td> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}"></label></td>
-
+          <td class="{{conference}}"> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}">vs <img src="{{lthat}}" style="width:50px;height:50px;"></label></td>
           {% endif %}
-      {% else %}
-      <td></td>
-      {% endif %}
-      {% endif %}
-      {% endfor %}
-
+	{% else %}
+        <td></td>
+	{% endif %}
       {% endfor %}
     </tr>
     {% endfor %}

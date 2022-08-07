@@ -11,4 +11,12 @@
     </div>
 </div><!-- /.jumbotron -->
 
+{% if conferences %}
+<div class="container">
+  <h4 class="display-5">Schedules for Conferences</h4>
+  {% for conf in conferences %}
+      <br/><a href="/schedule/{{conf}}">{{conf}}</a>
+  {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

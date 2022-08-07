@@ -17,8 +17,8 @@ from cfb_survivor_pool.public.models import Team, Game
 from cfb_survivor_pool.user.forms import RegisterForm
 from cfb_survivor_pool.user.models import User
 from cfb_survivor_pool.utils import flash_errors
-from cfb_survivor_pool.cfbd_parser import CfbdParser
-from datetime import datetime
+from cfb_survivor_pool.cfbd_parser import CfbdParser, saturday_of
+from datetime import datetime, date
 from sqlalchemy import and_, or_
 blueprint = Blueprint("public", __name__, static_folder="../static")
 
@@ -35,6 +35,9 @@ def home():
     """Home page."""
     form = LoginForm(request.form)
     current_app.logger.info("Hello from the home page!")
+    conf = [x[0] for x in db.session.query(Team.conference).all()]
+    conf = sorted(list(set(conf)))
+    current_app.logger.info(conf)
     # Handle logging in
     if request.method == "POST":
         if form.validate_on_submit():
@@ -44,23 +47,45 @@ def home():
             return redirect(redirect_url)
         else:
             flash_errors(form)
-    return render_template("public/home.html", form=form)
+    return render_template("public/home.html", form=form, conferences=conf)
 
 
-@blueprint.route("/entry", methods=["GET", "POST"])
-@login_required
-def entry():
+@blueprint.route("/schedule/<conference>", methods=["GET", "POST"])
+def schedule(conference="Big Ten"):
+    sat2str = lambda x: "Week of %d/%d" % (x.month, x.day)
     form = EntryForm()
-    is_playing = [('Illinois', 'Week 1'), ('Illinois', 'Week 5'), ('Illinois', 'Week 6'), ('Illinois', 'Week 7'), ('Illinois', 'Week 9'), ('Illinois', 'Week 10'), ('Illinois', 'Week 11'), ('Illinois', 'Week 12'), ('Illinois', 'Week 13'), ('Indiana', 'Week 1'), ('Indiana', 'Week 5'), ('Indiana', 'Week 6'), ('Indiana', 'Week 7'), ('Indiana', 'Week 8'), ('Indiana', 'Week 10'), ('Indiana', 'Week 11'), ('Indiana', 'Week 12'), ('Indiana', 'Week 13'), ('Iowa', 'Week 4'), ('Iowa', 'Week 5'), ('Iowa', 'Week 6'), ('Iowa', 'Week 8'), ('Iowa', 'Week 9'), ('Iowa', 'Week 10'), ('Iowa', 'Week 11'), ('Iowa', 'Week 12'), ('Iowa', 'Week 13'), ('Maryland', 'Week 4'), ('Maryland', 'Week 5'), ('Maryland', 'Week 6'), ('Maryland', 'Week 7'), ('Maryland', 'Week 8'), ('Maryland', 'Week 10'), ('Maryland', 'Week 11'), ('Maryland', 'Week 12'), ('Maryland', 'Week 13'), ('Michigan', 'Week 4'), ('Michigan', 'Week 5'), ('Michigan', 'Week 6'), ('Michigan', 'Week 7'), ('Michigan', 'Week 9'), ('Michigan', 'Week 10'), ('Michigan', 'Week 11'), ('Michigan', 'Week 12'), ('Michigan', 'Week 13'), ('Michigan State', 'Week 4'), ('Michigan State', 'Week 5'), ('Michigan State', 'Week 6'), ('Michigan State', 'Week 7'), ('Michigan State', 'Week 9'), ('Michigan State', 'Week 10'), ('Michigan State', 'Week 11'), ('Michigan State', 'Week 12'), ('Michigan State', 'Week 13'), ('Minnesota', 'Week 4'), ('Minnesota', 'Week 5'), ('Minnesota', 'Week 7'), ('Minnesota', 'Week 8'), ('Minnesota', 'Week 9'), ('Minnesota', 'Week 10'), ('Minnesota', 'Week 11'), ('Minnesota', 'Week 12'), ('Minnesota', 'Week 13'), ('Nebraska', 'Week 1'), ('Nebraska', 'Week 5'), ('Nebraska', 'Week 6'), ('Nebraska', 'Week 7'), ('Nebraska', 'Week 9'), ('Nebraska', 'Week 10'), ('Nebraska', 'Week 11'), ('Nebraska', 'Week 12'), ('Nebraska', 'Week 13'), ('Northwestern', 'Week 1'), ('Northwestern', 'Week 5'), ('Northwestern', 'Week 6'), ('Northwestern', 'Week 8'), ('Northwestern', 'Week 9'), ('Northwestern', 'Week 10'), ('Northwestern', 'Week 11'), ('Northwestern', 'Week 12'), ('Northwestern', 'Week 13'), ('Ohio State', 'Week 4'), ('Ohio State', 'Week 5'), ('Ohio State', 'Week 6'), ('Ohio State', 'Week 8'), ('Ohio State', 'Week 9'), ('Ohio State', 'Week 10'), ('Ohio State', 'Week 11'), ('Ohio State', 'Week 12'), ('Ohio State', 'Week 13'), ('Penn State', 'Week 1'), ('Penn State', 'Week 5'), ('Penn State', 'Week 7'), ('Penn State', 'Week 8'), ('Penn State', 'Week 9'), ('Penn State', 'Week 10'), ('Penn State', 'Week 11'), ('Penn State', 'Week 12'), ('Penn State', 'Week 13'), ('Purdue', 'Week 1'), ('Purdue', 'Week 5'), ('Purdue', 'Week 6'), ('Purdue', 'Week 7'), ('Purdue', 'Week 8'), ('Purdue', 'Week 10'), ('Purdue', 'Week 11'), ('Purdue', 'Week 12'), ('Purdue', 'Week 13'), ('Rutgers', 'Week 4'), ('Rutgers', 'Week 5'), ('Rutgers', 'Week 6'), ('Rutgers', 'Week 8'), ('Rutgers', 'Week 9'), ('Rutgers', 'Week 10'), ('Rutgers', 'Week 11'), ('Rutgers', 'Week 12'), ('Rutgers', 'Week 13'), ('Wisconsin', 'Week 4'), ('Wisconsin', 'Week 5'), ('Wisconsin', 'Week 6'), ('Wisconsin', 'Week 7'), ('Wisconsin', 'Week 8'), ('Wisconsin', 'Week 10'), ('Wisconsin', 'Week 11'), ('Wisconsin', 'Week 12'), ('Wisconsin', 'Week 13')]
-    teams = ['Illinois', 'Indiana', 'Iowa', 'Maryland', 'Michigan', 'Michigan State', 'Minnesota', 'Nebraska', 'Northwestern', 'Ohio State', 'Penn State', 'Purdue', 'Rutgers', 'Wisconsin']
-    weeks = ['Week 1', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13']
-    grid = []
-    checked = [("Nebraska", "Week 1"), ("Iowa", "Week 5")]
-    for team in teams:
-        for week in weeks:
-            ### TODO: check if current time allows pick
-            grid.append((team, week, (team, week) in is_playing, (team, week) in checked))
-    return render_template("public/entry.html", grid=grid, teams=teams, weeks=weeks, form=form)
+    # if conference in request.args:
+    #     conference = request.args["conference"]
+    now = datetime.utcnow()
+    year = now.year
+    all_games = db.session.query(Game, Team).filter(and_(Game.season == year,
+                                                         or_(Team.id == Game.away_id,
+                                                             Team.id == Game.home_id),
+                                                         Team.conference == conference)).all()
+    all_teams = db.session.query(Team).all()
+    logos = {t.id: t.logo for t in all_teams}
+    grid = {}
+    teams = set()
+    weeks = set()
+    checked = [("Nebraska", sat2str(saturday_of(date(2022, 8, 27))))]
+    for g, t in all_games:
+        saturday = saturday_of(g.start_date)
+        can_modify = g.start_date > now
+        key = (t.school, sat2str(saturday))
+        if g.conference_game:
+            conf_str = ""
+        else:
+            conf_str = "table-secondary"
+        if t.id == g.away_id:
+            grid[key] = (can_modify, logos[g.away_id], logos[g.home_id], key in checked, conf_str)
+        else:
+            grid[key] = (can_modify, logos[g.home_id], logos[g.away_id], key in checked, conf_str)
+        teams.add(t.school)
+        weeks.add(saturday)
+
+    teams = sorted(list(teams))
+    weeks = [sat2str(saturday) for saturday in sorted(weeks)]
+    return render_template("public/entry.html", grid=grid, teams=teams, weeks=weeks, form=LoginForm(request.form))
 
 @blueprint.route("/logout/")
 @login_required
@@ -102,8 +127,11 @@ def get_teams():
 
 @blueprint.route("/games/")
 def get_games():
-    all_games = db.session.query(Game).all()
-    return render_template("public/games.html", games=[(g.id, g.home_id, g.away_id, g.home_points, g.away_points, g.home_team, g.away_team) for g in all_games])
+    year = datetime.utcnow().year
+    all_games = db.session.query(Game, Team).filter(and_(Game.season == year,
+                                                         or_(Team.id == Game.away_id,
+                                                             Team.id == Game.home_id))).all()
+    return render_template("public/games.html", games=[(g.id, g.home_id, g.away_id, g.home_points, g.away_points, g.home_team, g.away_team) for g, t in all_games])
 
 @blueprint.route("/update_teams_games/", methods=["GET"])
 def update_teams_games():
