@@ -76,8 +76,6 @@ def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
     grid = {}
     teams = set()
     weeks = set()
-    db.session.query(Pick).delete()
-    db.session.commit()
 
     checked = [("Nebraska", sat2str(saturday_of(date(2022, 8, 27))))]
     for g in all_games:
@@ -93,22 +91,22 @@ def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
         weeks.add(g.saturday)
         #### Home
         if g.home_team.conference == conference:
-            pk = Pick(team=g.home_team, game=g, created=now)
-            db.session.add(pk)
+            # pk = Pick(team=g.home_team, game=g, created=now)
+            # db.session.add(pk)
             key = (g.home_team.school, sat2str(g.saturday))
             grid[key] = (can_modify, g.home_team.logo, g.away_team.logo, key in checked, conf_str)
             teams.add(g.home_team.school)
         #### Away
         if g.away_team.conference == conference:
-            pk = Pick(team=g.away_team, game=g, created=now)
-            db.session.add(pk)
+            # pk = Pick(team=g.away_team, game=g, created=now)
+            # db.session.add(pk)
             key = (g.away_team.school, sat2str(g.saturday))
             grid[key] = (can_modify, g.away_team.logo, g.home_team.logo, key in checked, conf_str)
             teams.add(g.away_team.school)
 
     teams = sorted(list(teams))
     weeks = [sat2str(saturday) for saturday in sorted(weeks)]
-    flash(db.session.query(Pick).all())
+    # flash(db.session.query(Pick).all())
     return render_template("public/entry.html", grid=grid, teams=teams, weeks=weeks, form=LoginForm(request.form))
 
 @blueprint.route("/logout/")

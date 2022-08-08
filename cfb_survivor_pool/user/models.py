@@ -118,7 +118,6 @@ class Entry(PkModel):
     __tablename__ = _entry_tablename
     name = Column(db.String(80), nullable=False)
     creator_id = reference_col(User.__tablename__, nullable=False)
-    creator = relationship("User")
     ### pools = relationship("Pool", backref="entries")
     picks = relationship("Pick", backref="entry")
     def __init__(self, name, creator):
