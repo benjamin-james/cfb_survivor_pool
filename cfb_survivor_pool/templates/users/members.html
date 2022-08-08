@@ -4,6 +4,10 @@
     <div class="container">
         <h1>Welcome {{ current_user.username }}</h1>
         <h3>This is the members-only page.</h3>
+	{% if user_id %}
+	{% for uid in user_id %}
+	<br/>{{uid}}
+	{% endfor %}
+	{% endif %}
     </div>
 {% endblock %}
-

@@ -36,9 +36,3 @@ class LoginForm(FlaskForm):
             self.username.errors.append("User not activated")
             return False
         return True
-
-
-class EntryForm(FlaskForm):
-    title = StringField("Title")
-    # username = StringField("Username", validators=[DataRequired()])
-    # password = PasswordField("Password", validators=[DataRequired()])

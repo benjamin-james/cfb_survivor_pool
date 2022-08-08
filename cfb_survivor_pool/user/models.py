@@ -61,3 +61,16 @@ class User(UserMixin, PkModel):
     def __repr__(self):
         """Represent instance as a unique string."""
         return f"<User({self.username!r})>"
+
+# class Entry(PkModel):
+#     pool = reference_col()
+#     user = reference_col()
+
+# class Pool(PkModel):
+#     name = Column(db.String(80), unique=True, nullable=False)
+#     conference = Column(db.String(80), nullable=False)
+#     year = Column(db.Integer, nullable=False, default=dt.datetime.utcnow().year)
+#     intra_score = Column(db.Integer, nullable=False, default=5)
+#     inter_score = Column(db.Integer, nullable=False, default=1)
+#     creator = reference_col("users", nullable=True)
+#     def __init__(self, name, conference):
