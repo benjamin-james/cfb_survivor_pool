@@ -57,6 +57,7 @@ def schedule(conference="Big Ten"):
 
 @blueprint.route("/schedule/<conference>/<year>/<month>/<day>/", methods=["GET", "POST"])
 def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
+    ### TODO: warn user if could select more teams or picks
     sat2str = lambda x: "Week of %d/%d" % (x.month, x.day)
     # form = EntryForm()
     # if conference in request.args:

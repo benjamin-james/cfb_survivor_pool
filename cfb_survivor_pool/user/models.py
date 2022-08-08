@@ -120,9 +120,14 @@ class Entry(PkModel):
     creator_id = reference_col(User.__tablename__, nullable=False)
     ### pools = relationship("Pool", backref="entries")
     picks = relationship("Pick", backref="entry")
-    def __init__(self, name, creator):
+    created = db.Column(db.DateTime, nullable=False)
+    def __init__(self, name, creator, created=None):
         self.name = name
         self.creator_id = creator.id
+        if created is not None:
+            self.created = created
+        else:
+            self.created = dt.datetime.utcnow()
     def __repr__(self):
         return f"<Entry {self.name, self.creator_id}>"
     @hybrid_property
@@ -132,7 +137,12 @@ class Entry(PkModel):
             total += self.picks.score(intra_conference_score=intra_conference_score,
                                       inter_conference_score=inter_conference_score)
         return total
-
+    @hybrid_property
+    def last_updated(self):
+        lu = self.created
+        for pick in self.picks:
+            lu = max(lu, pick.created)
+        return lu
 ### For Pool, enforce that all teams chosen are in the same conference
 # class Pool(PkModel):
 #     name = Column(db.String(80), unique=True, nullable=False)
