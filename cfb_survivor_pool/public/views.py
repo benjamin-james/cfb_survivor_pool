@@ -78,7 +78,6 @@ def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
     weeks = set()
     checked = [("Nebraska", sat2str(saturday_of(date(2022, 8, 27))))]
     for g in all_games:
-        saturday = saturday_of(g.start_date)
         if g.conference_game:
             conf_str = ""
         else:
@@ -88,15 +87,15 @@ def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
         else:
             can_modify = "disabled"
             conf_str = "table-info"
-        weeks.add(saturday)
+        weeks.add(g.saturday)
         #### Home
         if g.home_team.conference == conference:
-            key = (g.home_team.school, sat2str(saturday))
+            key = (g.home_team.school, sat2str(g.saturday))
             grid[key] = (can_modify, g.home_team.logo, g.away_team.logo, key in checked, conf_str)
             teams.add(g.home_team.school)
         #### Away
         if g.away_team.conference == conference:
-            key = (g.away_team.school, sat2str(saturday))
+            key = (g.away_team.school, sat2str(g.saturday))
             grid[key] = (can_modify, g.away_team.logo, g.home_team.logo, key in checked, conf_str)
             teams.add(g.away_team.school)
 

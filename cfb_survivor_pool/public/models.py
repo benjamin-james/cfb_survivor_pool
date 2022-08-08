@@ -3,7 +3,9 @@
 from datetime import datetime
 
 from cfb_survivor_pool.database import Column, PkModel, db, reference_col, relationship
+from cfb_survivor_pool.cfbd_parser import saturday_of
 from sqlalchemy.orm import backref
+from sqlalchemy.ext.hybrid import hybrid_property
 _team_tablename = "team"
 
 class Game(PkModel):
@@ -40,6 +42,9 @@ class Game(PkModel):
             self.home_points = home_points
     def __repr__(self):
         return "<Game %d>" % self.id
+    @hybrid_property
+    def saturday(self):
+        return saturday_of(self.start_date)
 
 class Team(PkModel):
     __tablename__ = _team_tablename
