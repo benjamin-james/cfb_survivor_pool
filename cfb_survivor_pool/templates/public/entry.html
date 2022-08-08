@@ -61,9 +61,9 @@
         {% if (team, week) in grid %}
           {% set mod, lthis, lthat, chk, conference = grid[team, week] %}
           {% if chk %}
-          <td class="{{conference}}"> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}" checked>vs <img src="{{lthat}}" style="width:50px;height:50px;"></label></td>
+          <td class="{{conference}}"> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}" {{mod}} checked>vs <img src="{{lthat}}" style="width:50px;height:50px;"></label></td>
           {% else %}
-          <td class="{{conference}}"> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}">vs <img src="{{lthat}}" style="width:50px;height:50px;"></label></td>
+          <td class="{{conference}}"> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}" {{mod}} >vs <img src="{{lthat}}" style="width:50px;height:50px;"></label></td>
           {% endif %}
 	{% else %}
         <td></td>

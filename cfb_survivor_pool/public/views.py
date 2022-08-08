@@ -50,38 +50,55 @@ def home():
     return render_template("public/home.html", form=form, conferences=conf)
 
 
-@blueprint.route("/schedule/<conference>", methods=["GET", "POST"])
+@blueprint.route("/schedule/<conference>/", methods=["GET", "POST"])
 def schedule(conference="Big Ten"):
+    now = datetime.utcnow()
+    return schedule_day(conference=conference, year=now.year, month=now.month, day=now.day)
+
+@blueprint.route("/schedule/<conference>/<year>/<month>/<day>/", methods=["GET", "POST"])
+def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
     sat2str = lambda x: "Week of %d/%d" % (x.month, x.day)
     # form = EntryForm()
     # if conference in request.args:
     #     conference = request.args["conference"]
-    now = datetime.utcnow()
-    year = now.year
-    all_games = db.session.query(Game, Team).filter(and_(Game.season == year,
-                                                         or_(Team.id == Game.away_id,
-                                                             Team.id == Game.home_id),
-                                                         Team.conference == conference)).all()
-    all_teams = db.session.query(Team).all()
-    logos = {t.id: t.logo for t in all_teams}
+    if type(year) == str and year.isnumeric():
+        year = int(year)
+    if type(month) == str and month.isnumeric():
+        month = int(month)
+    if type(day) == str and day.isnumeric():
+        day = int(day)
+    now = datetime(year=year, month=month, day=day)
+    all_games = Game.query.join(Game.away_team,
+                                Game.home_team,
+                                aliased=True).filter(and_(Game.season == year,
+                                                          or_(Game.away_team.has(conference=conference),
+                                                              Game.home_team.has(conference=conference)))).all()
     grid = {}
     teams = set()
     weeks = set()
     checked = [("Nebraska", sat2str(saturday_of(date(2022, 8, 27))))]
-    for g, t in all_games:
+    for g in all_games:
         saturday = saturday_of(g.start_date)
-        can_modify = g.start_date > now
-        key = (t.school, sat2str(saturday))
         if g.conference_game:
             conf_str = ""
         else:
             conf_str = "table-secondary"
-        if t.id == g.away_id:
-            grid[key] = (can_modify, logos[g.away_id], logos[g.home_id], key in checked, conf_str)
+        if g.start_date > now:
+            can_modify = ""
         else:
-            grid[key] = (can_modify, logos[g.home_id], logos[g.away_id], key in checked, conf_str)
-        teams.add(t.school)
+            can_modify = "disabled"
+            conf_str = "table-info"
         weeks.add(saturday)
+        #### Home
+        if g.home_team.conference == conference:
+            key = (g.home_team.school, sat2str(saturday))
+            grid[key] = (can_modify, g.home_team.logo, g.away_team.logo, key in checked, conf_str)
+            teams.add(g.home_team.school)
+        #### Away
+        if g.away_team.conference == conference:
+            key = (g.away_team.school, sat2str(saturday))
+            grid[key] = (can_modify, g.away_team.logo, g.home_team.logo, key in checked, conf_str)
+            teams.add(g.away_team.school)
 
     teams = sorted(list(teams))
     weeks = [sat2str(saturday) for saturday in sorted(weeks)]

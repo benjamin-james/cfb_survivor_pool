@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from cfb_survivor_pool.database import Column, PkModel, db, reference_col, relationship
-
+from sqlalchemy.orm import backref
 _team_tablename = "team"
 
 class Game(PkModel):
