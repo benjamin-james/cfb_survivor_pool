@@ -15,7 +15,7 @@ from cfb_survivor_pool.extensions import login_manager, db
 from cfb_survivor_pool.public.forms import LoginForm
 from cfb_survivor_pool.public.models import Team, Game
 from cfb_survivor_pool.user.forms import RegisterForm
-from cfb_survivor_pool.user.models import User
+from cfb_survivor_pool.user.models import User, Pick
 from cfb_survivor_pool.utils import flash_errors
 from cfb_survivor_pool.cfbd_parser import CfbdParser, saturday_of
 from datetime import datetime, date
@@ -76,6 +76,9 @@ def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
     grid = {}
     teams = set()
     weeks = set()
+    db.session.query(Pick).delete()
+    db.session.commit()
+
     checked = [("Nebraska", sat2str(saturday_of(date(2022, 8, 27))))]
     for g in all_games:
         if g.conference_game:
@@ -90,17 +93,22 @@ def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
         weeks.add(g.saturday)
         #### Home
         if g.home_team.conference == conference:
+            pk = Pick(team=g.home_team, game=g, created=now)
+            db.session.add(pk)
             key = (g.home_team.school, sat2str(g.saturday))
             grid[key] = (can_modify, g.home_team.logo, g.away_team.logo, key in checked, conf_str)
             teams.add(g.home_team.school)
         #### Away
         if g.away_team.conference == conference:
+            pk = Pick(team=g.away_team, game=g, created=now)
+            db.session.add(pk)
             key = (g.away_team.school, sat2str(g.saturday))
             grid[key] = (can_modify, g.away_team.logo, g.home_team.logo, key in checked, conf_str)
             teams.add(g.away_team.school)
 
     teams = sorted(list(teams))
     weeks = [sat2str(saturday) for saturday in sorted(weeks)]
+    flash(db.session.query(Pick).all())
     return render_template("public/entry.html", grid=grid, teams=teams, weeks=weeks, form=LoginForm(request.form))
 
 @blueprint.route("/logout/")
@@ -140,6 +148,11 @@ def about():
 def get_teams():
     all_teams = db.session.query(Team).all()
     return render_template("public/teams.html", teams=[(t.id, t.abbreviation, t.classification, t.color, t.conference, t.logo, t.mascot, t.school, t.away_games, t.home_games) for t in all_teams])
+
+@blueprint.route("/picks")
+def get_picks():
+    all_picks = db.session.query(Pick).all()
+    return render_template("public/picks.html", picks=all_picks)
 
 @blueprint.route("/games/")
 def get_games():
