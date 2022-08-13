@@ -43,7 +43,12 @@
 <h1> Schedule</h1>
 <div class="form-check">
   <div class="row justify-content-center">
-        <div class="col-auto">
+    <div class="col-auto">
+      <form name="entryform" method="post" action="/">
+	{% if form.errors %}
+	  {{ form.errors }}
+	{% endif %}
+	{{ form.csrf_token }}
 <table class="table table-bordered table-responsive">
   <thead class="table-primary">
     <tr>
@@ -72,8 +77,10 @@
     </tr>
     {% endfor %}
   </tbody>
-
 </table>
+
+    <input type="submit">
+</form>
 </div>
 </div>
 </div>

@@ -59,6 +59,7 @@ def schedule(conference="Big Ten"):
 def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
     ### TODO: warn user if could select more teams or picks
     sat2str = lambda x: "Week of %d/%d" % (x.month, x.day)
+    print(request.method)
     # form = EntryForm()
     # if conference in request.args:
     #     conference = request.args["conference"]
@@ -71,7 +72,7 @@ def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
     now = datetime(year=year, month=month, day=day)
     all_games = Game.query.join(Game.away_team,
                                 Game.home_team,
-                                aliased=True).filter(and_(Game.season == year,
+                                aliased=True).filter(and_(Game.season == now.year,
                                                           or_(Game.away_team.has(conference=conference),
                                                               Game.home_team.has(conference=conference)))).all()
     grid = {}

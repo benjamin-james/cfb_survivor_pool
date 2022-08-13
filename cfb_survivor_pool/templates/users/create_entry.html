@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block css %}
+<style>
+[type=radio] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  vertical-align: middle;
+  margin: 0;
+}
+
+/* IMAGE STYLES */
+[type=radio] + img {
+  cursor: pointer;
+}
+
+
+/* CHECKED STYLES */
+[type=radio]:checked + img {
+    outline: 5px solid #f00;
+    background-color: darkgray;
+}
+</style>
+{% endblock %}
+{% block js %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script>
+  function entryradio() {
+    var col, el;
+    $("input[type=radio]").click(function() {
+	el = $(this);
+	col = el.attr("id");
+	$("input[id=\"" + col + "\"]").prop("checked", false);
+	el.prop("checked", true);
+    });
+}
+
+  $(entryradio);
+</script>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>Welcome {{ current_user.username }}</h1>
+        <h3>This is the members-only page.</h3>
+	<form name="entryform" method="POST">
+	{% if form.errors %}
+	  {{ form.errors }} <br/>
+	{% endif %}
+	<table class="table table-bordered table-responsive">
+	  {% for wk in form.weeks %}
+	  <tr>
+	    {{ wk.teams() }}
+	  </tr>
+	  {% endfor %}
+	  {{ form.hidden_tag() }}
+	{{ form.submit() }}
+	</table>
+	</form>
+    </div>
+{% endblock %}
