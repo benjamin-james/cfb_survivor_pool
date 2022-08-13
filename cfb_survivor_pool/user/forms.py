@@ -57,24 +57,28 @@ class EntryWidget:
                 hidden += str(subfield)
             else:
                 print("subfield:", vars(subfield))
-                if "data-td-class" in subfield.render_kw.keys():
-                    td = " class=\"%s\"" % subfield.render_kw["data-td-class"]
+                if "td_class" in vars(field).keys():
+                    td = " class=%s" % field.td_class[iteration]
                 else:
                     td = ""
                 subfield.id = subfield.data
-                if "selected" in vars(field).keys() and field.selected:
+                if "selected" in vars(field).keys() and field.selected == subfield.id:
                     subfield.checked = True
                 subfield.render_kw["aria-label"] = "%s %s" % (subfield.name, subfield.id)
                 subfield.render_kw["disabled"] = field.disabled[iteration]
                 if subfield.render_kw["disabled"]:
                     td = " class=\"%s\"" % "table-info"
-                html.append(
-                    "<td%s><label class=\"radio-inline\">%s%s<img src=\"%s\" style=\"width:50px;height:50px;\"></label></td>"
+
+                if ("use" not in kwargs.keys()) or ("use" in kwargs.keys() and kwargs["use"] == subfield.id):
+                        html.append(
+                    "<td%s><label class=\"radio-inline\">%s%s vs<img src=\"%s\" style=\"width:50px;height:50px;\"></label></td>"
                     % (td,
                         hidden, str(subfield), subfield.label.text)
                 )
                 hidden = ""
                 iteration += 1
+        if len(html) == 0: ### add blank
+            html.append("<td></td>")
         if hidden:
             html.append(hidden)
         return Markup("\n".join(html))
@@ -86,4 +90,4 @@ class WeekForm(FlaskForm):
 class EntryForm(FlaskForm):
     ### https://stackoverflow.com/questions/28375565/add-input-fields-dynamically-with-wtforms
     weeks = FieldList(FormField(WeekForm))
-    submit = SubmitField('Submit')
+    submit = SubmitField('Update entry')

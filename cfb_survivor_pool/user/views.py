@@ -51,47 +51,33 @@ def create_entry(conference="Big Ten", year=2022, month=8, day=10):
     sat2str = lambda x: "Week of %d/%d" % (x.month, x.day)
     grid = {}
     teams = set()
-    weeks = set([g.saturday for g in all_games])
-    # for sat in set([g.saturday for g in all_games]):
-    #     wf = WeekForm()
-    #     wteams = set()
-    #     for g in all_games:
-    #         if g.saturday == sat and g.away_team.conference == conference:
-    #             wteams.add(g.away_team)
-    #         if g.saturday == sat and g.home_team.conference == conference:
-    #             wteams.add(g.home_team)
-    #     wteams = sorted(list(wteams))
-    #     teams.update(wteams)
-    #     wf.teams.choices = [(t.school, t.logo) for t in wteams]
-    #     wf.teams.name = sat2str(sat)
-    #     wf.teams.render_kw = {"data-col": [t.school for t in wteams],
-    #                           "aria-label": "%s %s" % (g.away_team.school, sat2str(g.saturday)),
-    #                           "class": "form-check-input",
-    #                           "disabled": False}
     weeks = []
+    wflist = []
     form = EntryForm()
-    ### todo: get default items from DB (entry.get by id
-    for g in all_games:
-        ws = sat2str(g.saturday)
+    for sat in sorted(list(set([g.saturday for g in all_games]))):
         wf = WeekForm()
-        wf.teams.choices = [(g.away_team.school, g.away_team.logo), (g.home_team.school, g.home_team.logo)]
-        wf.teams.name = sat2str(g.saturday)
-        wf.teams.render_kw = {
-            # "selected": str(g.home_team.school),
-            "class": "form-check-input",
-#            "disabled": now > g.start_
-        }
-        wf.teams.disabled = [now >= g.start_date, now >= g.start_date]
-        wf.teams.selected = g.home_team.school
-        if g.conference_game:
-            wf.teams.render_kw["data-td-class"] = ""
-        else:
-            wf.teams.render_kw["data-td-class"] = "table-secondary"
-        if len(weeks) < 12:
-            weeks.append(wf)
-            print("teams:", vars(wf.teams))
-    form.weeks = weeks
-    context = {"form": form}
+        wteams = set()
+        wtg = {}
+        for g in all_games:
+            if g.saturday == sat and g.away_team.conference == conference:
+                wteams.add(g.away_team)
+                wtg[g.away_team] = g
+            if g.saturday == sat and g.home_team.conference == conference:
+                wteams.add(g.home_team)
+                wtg[g.home_team] = g
+        wteams = list(wteams)
+        oteams = [wtg[t].away_team if wtg[t].home_team == t else wtg[t].home_team for t in wteams]
+        teams.update(wteams)
+        wf.teams.choices = [(t.school, ot.logo) for t, ot in zip(wteams, oteams)]
+        wf.teams.name = sat2str(sat)
+        wf.teams.render_kw = {"class": "form-check-input"}
+        wf.teams.disabled = [now >= wtg[t].start_date for t in wteams]
+        wf.teams.selected = wteams[0]
+        wf.teams.td_class = ["" if wtg[t].conference_game else "table-secondary"  for t in wteams]
+        wflist.append(wf)
+        weeks.append(sat2str(sat))
+    form.weeks = wflist
+    context = {"form": form, "teams": sorted(list(teams), key=lambda x: x.school), "weeks": weeks}
     if form.validate_on_submit():
         flash("validated! %s" % str(dt.datetime.now()))
         # for wk in form.weeks:

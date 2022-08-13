@@ -40,22 +40,39 @@
 </script>
 {% endblock %}
 {% block content %}
-    <div class="container">
+<div class="form-check">
+  <div class="row justify-content-center">
+    <div class="col-auto">
         <h1>Welcome {{ current_user.username }}</h1>
         <h3>This is the members-only page.</h3>
 	<form name="entryform" method="POST">
-	{% if form.errors %}
+	  {% if form.errors %}
 	  {{ form.errors }} <br/>
-	{% endif %}
-	<table class="table table-bordered table-responsive">
-	  {% for wk in form.weeks %}
-	  <tr>
-	    {{ wk.teams() }}
-	  </tr>
-	  {% endfor %}
+	  {% endif %}
 	  {{ form.hidden_tag() }}
-	{{ form.submit() }}
-	</table>
+	  {{ form.submit() }}
+	  <table class="table table-bordered table-responsive">
+	    <thead class="table-primary">
+	      <tr>
+		<th scope="col">Team</th>
+		{% for week in weeks %}
+		<th scope="col">{{ week }}</th>
+		{% endfor %}
+	      </tr>
+	    </thead>
+	    <tbody>
+	      {% for team in teams %}
+	      <tr>
+		<th scope="row" class="table-primary" >{{ team.school }}</th>
+		{% for wk in form.weeks %}
+		{{ wk.teams(use=team.school) }}
+		{% endfor %}
+	      </tr>
+	      {% endfor %} <!-- teams -->
+	    </tbody>
+	  </table>
 	</form>
     </div>
+  </div>
+</div>
 {% endblock %}
