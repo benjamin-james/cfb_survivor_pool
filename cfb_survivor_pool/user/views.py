@@ -77,10 +77,12 @@ def create_entry(conference="Big Ten", year=2022, month=8, day=10):
         wf.teams.choices = [(g.away_team.school, g.away_team.logo), (g.home_team.school, g.home_team.logo)]
         wf.teams.name = sat2str(g.saturday)
         wf.teams.render_kw = {
-            "selected": str(g.home_team.school),
+            # "selected": str(g.home_team.school),
             "class": "form-check-input",
-            "disabled": False
+#            "disabled": now > g.start_
         }
+        wf.teams.disabled = [now >= g.start_date, now >= g.start_date]
+        wf.teams.selected = g.home_team.school
         if g.conference_game:
             wf.teams.render_kw["data-td-class"] = ""
         else:

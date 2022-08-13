@@ -44,7 +44,7 @@ class RegisterForm(FlaskForm):
             return False
         return True
 
-
+from flask import flash
 class EntryWidget:
     ### modified tablewidget from https://github.com/wtforms/wtforms/blob/master/src/wtforms/widgets/core.py
     def __call__(self, field, **kwargs):
@@ -62,9 +62,12 @@ class EntryWidget:
                 else:
                     td = ""
                 subfield.id = subfield.data
-                if "selected" in subfield.render_kw.keys() and subfield.id == subfield.render_kw["selected"]:
+                if "selected" in vars(field).keys() and field.selected:
                     subfield.checked = True
                 subfield.render_kw["aria-label"] = "%s %s" % (subfield.name, subfield.id)
+                subfield.render_kw["disabled"] = field.disabled[iteration]
+                if subfield.render_kw["disabled"]:
+                    td = " class=\"%s\"" % "table-info"
                 html.append(
                     "<td%s><label class=\"radio-inline\">%s%s<img src=\"%s\" style=\"width:50px;height:50px;\"></label></td>"
                     % (td,
