@@ -56,7 +56,6 @@ class EntryWidget:
             if subfield.type in ("HiddenField", "CSRFTokenField"):
                 hidden += str(subfield)
             else:
-                print("subfield:", vars(subfield))
                 if "td_class" in vars(field).keys():
                     td = " class=%s" % field.td_class[iteration]
                 else:
@@ -91,3 +90,8 @@ class EntryForm(FlaskForm):
     ### https://stackoverflow.com/questions/28375565/add-input-fields-dynamically-with-wtforms
     weeks = FieldList(FormField(WeekForm))
     submit = SubmitField('Update entry')
+
+class CreateEntryForm(FlaskForm):
+    conference = SelectField("Conference:", choices=[], validators=[DataRequired()])
+    entry_name = StringField("Entry name:", validators=[DataRequired(), Length(min=3, max=25)])
+    submit = SubmitField("Create!")

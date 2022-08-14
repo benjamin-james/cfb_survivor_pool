@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block css %}
+<style>
+.container-bg {
+    background: lightgray;
+    border-radius:.25rem!important;
+}
+.container {
+    border-radius:.25rem!important;
+}
+</style>
+{% endblock %}
+{% block content %}
+  <div class="container-fluid">
+    <h1>Welcome {{ current_user.username }}</h1>
+  </div>
+  <div class="container-fluid">
+      <form name="create_entry" method="POST">
+	{% if form.errors %}
+	{{ form.errors }} <br/>
+	{% endif %}
+	{{ form.hidden_tag() }}
+	<div class="form-group row">
+	  {{ form.conference.label(class="col-sm-2 col-form-label") }}
+	  <div class="col-sm-2">
+	    {{ form.conference(class="form-control") }}
+	  </div>
+	</div>
+	<div class="form-group row">
+	  {{ form.entry_name.label(class="col-sm-2 col-form-label") }}
+	  <div class="col-sm-2">
+	    {{ form.entry_name(class="col-form-control", placeholder="Your entry name") }}
+	  </div>
+	</div>
+	{{ form.submit(class="btn btn-primary") }}
+      </form>
+  </div>
+  <div class="container">
+    {% for E in entries %}
+    <br/>{{E}}
+    {% endfor %}
+  </div>
+{% endblock %}

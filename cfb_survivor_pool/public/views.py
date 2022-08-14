@@ -171,6 +171,15 @@ def update_teams_games(year):
     else:
         year = datetime.utcnow().year
     all_teams = db.session.query(Team).all()
+    if False: ### if need to clear data
+        all_games = db.session.query(Game).all()
+        for g in all_games:
+            db.session.delete(g)
+        db.session.commit()
+        for t in all_teams:
+            db.session.delete(t)
+        db.session.commit()
+    all_teams = db.session.query(Team).all()
     if len(all_teams) == 0:
         parser = CfbdParser(current_app.config["CFBD_API_KEY"])
         for record in parser.teams().to_dict("r"):

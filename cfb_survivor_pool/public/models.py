@@ -10,8 +10,8 @@ _team_tablename = "team"
 
 class Game(PkModel):
     __tablename__ = "game"
-    away_id = reference_col(_team_tablename, nullable=False)
-    home_id = reference_col(_team_tablename, nullable=False)
+    away_id = reference_col(_team_tablename, nullable=False, foreign_key_kwargs={"ondelete": "CASCADE"})
+    home_id = reference_col(_team_tablename, nullable=False, foreign_key_kwargs={"ondelete": "CASCADE"})
     start_date = db.Column(db.DateTime, nullable=False)
     conference_game = db.Column(db.Boolean, nullable=False, default=False)
     neutral_site = db.Column(db.Boolean, nullable=False, default=False)
@@ -57,8 +57,8 @@ class Team(PkModel):
     logo = db.Column(db.String(200), nullable=False)
     mascot = db.Column(db.String(50), nullable=False)
     school = db.Column(db.String(50), nullable=False)
-    away_games = relationship("Game", backref="away_team", foreign_keys=Game.away_id)
-    home_games = relationship("Game", backref="home_team", foreign_keys=Game.home_id)
+    away_games = relationship("Game", backref="away_team", foreign_keys=Game.away_id, passive_deletes=True)
+    home_games = relationship("Game", backref="home_team", foreign_keys=Game.home_id, passive_deletes=True)
     def __init__(self, team_id, abbreviation, classification, color, conference, logo, mascot, school, alt_color=None):
         super().__init__(id=team_id)
         self.abbreviation = abbreviation

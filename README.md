@@ -243,3 +243,11 @@ Pages:
 /standings
 /schedule
 /edit_entry
+
+* create entry workflow:
+** 1. user login
+** 2. list entries on user home page, plus create-entry link
+** 3. from 2: else create-entry: drop down menu for conferences, need name
+** 4. from 2,3: send to entry editing page
+** 5. after editing: show entries
+** 6.
