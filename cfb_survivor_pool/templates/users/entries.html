@@ -11,33 +11,48 @@
 </style>
 {% endblock %}
 {% block content %}
-  <div class="container-fluid">
-    <h1>Welcome {{ current_user.username }}</h1>
-  </div>
-  <div class="container-fluid">
-      <form name="create_entry" method="POST">
-	{% if form.errors %}
-	{{ form.errors }} <br/>
-	{% endif %}
-	{{ form.hidden_tag() }}
-	<div class="form-group row">
-	  {{ form.conference.label(class="col-sm-2 col-form-label") }}
-	  <div class="col-sm-2">
-	    {{ form.conference(class="form-control") }}
-	  </div>
-	</div>
-	<div class="form-group row">
-	  {{ form.entry_name.label(class="col-sm-2 col-form-label") }}
-	  <div class="col-sm-2">
-	    {{ form.entry_name(class="col-form-control", placeholder="Your entry name") }}
-	  </div>
-	</div>
-	{{ form.submit(class="btn btn-primary") }}
-      </form>
-  </div>
-  <div class="container">
+<div class="container mt-5">
+  <h1 class="mb-5">Welcome {{ current_user.username }}</h1>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead class="table-primary">
+	<tr>
+	  <th scope="col">Entry</th>
+	  <th scope="col">Conference</th>
+	  <th scope="col">Standings</th>
+	  <th scope="col">Edit picks</th>
+	</tr>
+      </thead>
     {% for E in entries %}
-    <br/>{{E}}
+      <tr>
+	<th scope="row" class="table-primary"> <a href="/view_entry/{{E.id}}">{{E.name}}</a> </th>
+	<td>{{E.conference}}</td>
+	<td><a href="/standings/{{E.year}}/{{E.conference}}">Standings</a></td>
+	<td><a href="/users/edit_entry/{{E.id}}">Edit picks</a></td>
+      </tr>
     {% endfor %}
-  </div>
+    </table>
+  </div> <!-- edit entries -->
+  <div class="container-fluid mt-5">
+    <form name="create_entry" method="POST">
+      {% if form.errors %}
+      {{ form.errors }} <br/>
+      {% endif %}
+      {{ form.hidden_tag() }}
+      <div class="form-group row">
+	{{ form.conference.label(class="col-sm-2 col-form-label") }}
+	<div class="col-sm-2">
+	  {{ form.conference(class="form-control") }}
+	</div>
+      </div>
+      <div class="form-group row">
+	{{ form.entry_name.label(class="col-sm-2 col-form-label") }}
+	<div class="col-sm-2">
+	  {{ form.entry_name(class="col-form-control", placeholder="Your entry name") }}
+	</div>
+      </div>
+      {{ form.entry_create(class="btn btn-primary") }}
+    </form>
+  </div> <!-- create entry -->
+</div>
 {% endblock %}

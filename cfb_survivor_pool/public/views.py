@@ -15,13 +15,14 @@ from cfb_survivor_pool.extensions import login_manager, db
 from cfb_survivor_pool.public.forms import LoginForm
 from cfb_survivor_pool.public.models import Team, Game
 from cfb_survivor_pool.user.forms import RegisterForm
-from cfb_survivor_pool.user.models import User, Pick
+from cfb_survivor_pool.user.models import User, Pick, Entry
 from cfb_survivor_pool.utils import flash_errors
 from cfb_survivor_pool.cfbd_parser import CfbdParser, saturday_of
-from datetime import datetime, date
-from sqlalchemy import and_, or_
+#from datetime import datetime, date
+import datetime as dt
+from sqlalchemy import and_, or_, desc
 blueprint = Blueprint("public", __name__, static_folder="../static")
-
+sat2str = lambda x: "Week of %d/%d" % (x.month, x.day)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -43,17 +44,18 @@ def home():
         if form.validate_on_submit():
             login_user(form.user)
             flash("You are logged in.", "success")
-            redirect_url = request.args.get("next") or url_for("user.members")
+            redirect_url = request.args.get("next") or url_for("user.list_entries")
             return redirect(redirect_url)
         else:
             flash_errors(form)
-    return render_template("public/home.html", form=form, conferences=conf)
+    year = dt.datetime.utcnow().year
+    return render_template("public/home.html", form=form, conferences=conf, year=year)
 
 
-@blueprint.route("/schedule/<conference>/", methods=["GET", "POST"])
-def schedule(conference="Big Ten"):
-    now = datetime.utcnow()
-    return schedule_day(conference=conference, year=now.year, month=now.month, day=now.day)
+@blueprint.route("/schedule/<year>/<conference>/", methods=["GET", "POST"])
+def schedule(year=2022, conference="Big Ten"):
+    now = dt.datetime.utcnow()
+    return schedule_day(conference=conference, year=year, month=now.month, day=now.day)
 
 @blueprint.route("/schedule/<conference>/<year>/<month>/<day>/", methods=["GET", "POST"])
 def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
@@ -69,7 +71,7 @@ def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
         month = int(month)
     if type(day) == str and day.isnumeric():
         day = int(day)
-    now = datetime(year=year, month=month, day=day)
+    now = dt.datetime(year=year, month=month, day=day)
     all_games = Game.query.join(Game.away_team,
                                 Game.home_team,
                                 aliased=True).filter(and_(Game.season == now.year,
@@ -79,7 +81,7 @@ def schedule_day(conference="Big Ten", year=2022, month=8, day=10):
     teams = set()
     weeks = set()
 
-    checked = [("Nebraska", sat2str(saturday_of(date(2022, 8, 27))))]
+    checked = [("Nebraska", sat2str(saturday_of(dt.date(2022, 8, 27))))]
     for g in all_games:
         if g.conference_game:
             conf_str = ""
@@ -154,14 +156,14 @@ def get_picks():
     all_picks = db.session.query(Pick).all()
     return render_template("public/picks.html", picks=all_picks)
 
-@blueprint.route("/games/")
-def get_games():
-    year = datetime.utcnow().year
+@blueprint.route("/games/<year>")
+def get_games(year):
+    year = dt.datetime.utcnow().year
     # all_games = db.session.query(Game, Team).filter(and_(Game.season == year,
     #                                                      or_(Team.id == Game.away_id,
     #                                                          Team.id == Game.home_id))).all()
-    all_games = db.session.query(Game).all()
-    return render_template("public/games.html", games=[(g.id, g.home_id, g.away_id, g.home_points, g.away_points, g.home_team, g.away_team) for g in all_games])
+    all_games = db.session.query(Game).filter(Game.start_date > dt.date(year, month=1, day=1)).all()
+    return render_template("public/games.html", games=[(g.id, g.home_id, g.away_id, g.home_points, g.away_points, g.home_team, g.away_team, g.start_date) for g in all_games])
 
 @blueprint.route("/update_teams_games/<year>", methods=["GET", "POST"])
 @login_required
@@ -169,9 +171,9 @@ def update_teams_games(year):
     if year.isnumeric():
         year = int(year)
     else:
-        year = datetime.utcnow().year
-    all_teams = db.session.query(Team).all()
+        year = dt.datetime.utcnow().year
     if False: ### if need to clear data
+        all_teams = db.session.query(Team).all()
         all_games = db.session.query(Game).all()
         for g in all_games:
             db.session.delete(g)
@@ -220,3 +222,31 @@ def update_teams_games(year):
 #     all_teams = db.session.query(Team).delete()
 #     db.session.commit()
 #     return redirect("/games")
+
+@blueprint.route("/standings/<year>/<conference>")
+def standings(year, conference):
+    intra = 5
+    inter = 1
+    elist = db.session.query(Entry).filter(and_(Entry.year == year,
+                                                Entry.conference == conference)).all() #.order_by(Entry.last_updated).all()
+    elist.sort(key=lambda x: x.last_updated)
+    elist.sort(key=lambda x: x.survived)
+    elist.sort(key=lambda x: x.score(intra_conference_score=intra, inter_conference_score=inter), reverse=True)
+    return render_template("public/standings.html", entries=elist, year=year, conference=conference, intra=intra, inter=inter)
+
+@blueprint.route("/view_entry/<entry>")
+def view_entry(entry):
+    elist = db.session.query(Entry).filter(Entry.id == entry).all()
+    if len(elist) != 1:
+        return render_template("404.html")
+    entry = elist[0]
+    picks = []
+    for pick in entry.picks:
+        tbl = {"logo": pick.team.logo,
+               "saturday": pick.game.saturday,
+               "week": sat2str(pick.game.saturday),
+               "school": pick.team.school,
+               "correct": pick.is_correct}
+        picks.append(tbl)
+        picks.sort(key=lambda x: x["saturday"])
+    return render_template("public/view.html", entry=entry, picks=picks)

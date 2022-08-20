@@ -1,20 +1,34 @@
 {% extends "layout.html" %}
+{% block css %}
+<style>
+  img {
+      max-width: 100%;
+      width: 50px;
+      height: auto;
+  }
+</style>
+{% endblock %}
 {% block content %}
 {% if games %}
 <h1> Games </h1>
 <div class="row justify-content-center">
   <div class="col-auto">
     <table class="table table-striped table-bordered table-responsive">
-      <tbody>
-	{% for id, home_id, away_id, home_score, away_score, home_team, away_team in games %}
+      <thead>
 	<tr>
-	  <td>{{id}}</td>
-	  <td>{{home_id}}</td>
-	  <td>{{home_team}}</td>
+	</tr>
+      </thead>
+      <tbody>
+	{% for id, home_id, away_id, home_score, away_score, home_team, away_team, start_date in games %}
+	<tr>
+	  <!-- <td>{{id}}</td> -->
+	  <!-- <td>{{home_id}}</td> -->
+	  <td><img src="{{home_team.logo}}" alt="{{home_team.school}}"></td>
 	  <td>{{home_score}}</td>
 	  <td>{{away_score}}</td>
-	  <td>{{away_team}}</td>
-	  <td>{{away_id}}</td>
+	  <td><img src="{{away_team.logo}}" alt="{{away_team.school}}"></td>
+	  <!-- <td>{{away_id}}</td> -->
+	  <td>{{start_date}}</td>
 	</tr>
 	{% endfor %}
       </tbody>

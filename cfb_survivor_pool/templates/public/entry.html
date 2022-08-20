@@ -40,15 +40,10 @@
 {% block content %}
 
 {% if grid and teams and weeks %}
+<div class="container">
 <h1> Schedule</h1>
-<div class="form-check">
   <div class="row justify-content-center">
     <div class="col-auto">
-      <form name="entryform" method="post" action="/">
-	{% if form.errors %}
-	  {{ form.errors }}
-	{% endif %}
-	{{ form.csrf_token }}
 <table class="table table-bordered table-responsive">
   <thead class="table-primary">
     <tr>
@@ -64,12 +59,8 @@
       <th scope="row" class="table-primary" >{{ team }}</th>
       {% for week in weeks %}
         {% if (team, week) in grid %}
-          {% set mod, lthis, lthat, chk, conference = grid[team, week] %}
-          {% if chk %}
-          <td class="{{conference}}"> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}" {{mod}} checked>vs <img src="{{lthat}}" style="width:50px;height:50px;"></label></td>
-          {% else %}
-          <td class="{{conference}}"> <label class="radio-inline"> <input class="form-check-input" style="vertical-align: middle; margin: 0px;" type="radio" name="{{week}}" data-col="{{team}}" aria-label="{{team}} {{week}}" {{mod}} >vs <img src="{{lthat}}" style="width:50px;height:50px;"></label></td>
-          {% endif %}
+      {% set mod, lthis, lthat, chk, conference = grid[team, week] %}
+      <td class="{{conference}}"> vs <img src="{{lthat}}" style="width:50px;height:50px;"></td>
 	{% else %}
         <td></td>
 	{% endif %}
@@ -78,9 +69,6 @@
     {% endfor %}
   </tbody>
 </table>
-
-    <input type="submit">
-</form>
 </div>
 </div>
 </div>

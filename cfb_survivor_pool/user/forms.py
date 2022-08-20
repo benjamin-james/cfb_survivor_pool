@@ -94,4 +94,5 @@ class EntryForm(FlaskForm):
 class CreateEntryForm(FlaskForm):
     conference = SelectField("Conference:", choices=[], validators=[DataRequired()])
     entry_name = StringField("Entry name:", validators=[DataRequired(), Length(min=3, max=25)])
-    submit = SubmitField("Create!")
+    entry_create = SubmitField("Create Entry")
+    ### radio field: default is new entry, could select entries to edit???

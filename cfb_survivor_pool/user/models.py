@@ -136,19 +136,34 @@ class Entry(PkModel):
             self.created = dt.datetime.utcnow()
     def __repr__(self):
         return f"<Entry {self.name, self.id}>"
-    @hybrid_property
+    @hybrid_method
     def score(self, intra_conference_score, inter_conference_score):
         total = 0
-        for pick in self.picks:
-            total += self.picks.score(intra_conference_score=intra_conference_score,
-                                      inter_conference_score=inter_conference_score,
-                                      conference=self.conference)
+        if self.picks is not None:
+            for pick in self.picks:
+                total += pick.score(intra_conference_score=intra_conference_score,
+                                    inter_conference_score=inter_conference_score,
+                                    conference=self.conference)
         return total
+    @hybrid_property
+    def survived(self):
+        if self.picks is None:
+            return 0
+        picks = sorted(list(self.picks), key=lambda x: x.created)
+        weeks = 0
+        for pick in picks:
+            if pick.score(1, 1, conference=self.conference) > 0:
+                weeks += 1
+            else:
+                break
+        return weeks
     @hybrid_property
     def last_updated(self):
         lu = self.created
-        for pick in self.picks:
-            lu = max(lu, pick.created)
+        if self.picks is not None:
+            for pick in self.picks:
+                if pick.created > lu:
+                    lu = pick.created
         return lu
 ### For Pool, enforce that all teams chosen are in the same conference
 # class Pool(PkModel):

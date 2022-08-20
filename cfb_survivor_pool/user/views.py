@@ -35,20 +35,24 @@ def home():
 @login_required
 def list_entries():
     """List entries."""
-    ### TODO: link to standings; buttons for editing and deletion
+    ### TODO: link to standings; buttons for editing and deletion; name editing
     me = load_user(current_user.id)
     all_entries = [u for u in me.entries]
     conferences = [x[0] for x in db.session.query(Team.conference).distinct()]
     cef = CreateEntryForm()
     cef.conference.choices = conferences
     if request.method == "POST" and cef.validate_on_submit():
-        now = dt.datetime.utcnow()
-        conference = cef.conference.data
-        entry_name = cef.entry_name.data
-        ent = Entry(name=entry_name, creator=current_user, conference=conference, year=now.year, created=now)
-        db.session.add(ent)
-        db.session.commit()
-        return redirect("/users/edit_entry/%d" % ent.id)
+        if request.form.get("entry_create"):
+            now = dt.datetime.utcnow()
+            conference = cef.conference.data
+            entry_name = cef.entry_name.data
+            ent = Entry(name=entry_name, creator=current_user, conference=conference, year=now.year, created=now)
+            db.session.add(ent)
+            db.session.commit()
+            return redirect("/users/edit_entry/%d" % ent.id)
+        else:
+            flash("Unknown button pressed")
+            return render_template("users/entries.html", entries=all_entries, form=cef)
     else:
         return render_template("users/entries.html", entries=all_entries, form=cef)
 
@@ -170,7 +174,7 @@ def form2entry(form, now, weeks, teams, entry):
                                                                       params["team"]))
                 break
         db.session.commit()
-        flash([(p.team.school, sat2str(p.game.saturday)) for p in entry.picks])
+#        flash([(p.team.school, sat2str(p.game.saturday)) for p in entry.picks])
         return redirect("/users/")
     print("Entry was not added")
     # db.session.delete(entry)
@@ -181,7 +185,7 @@ def form2entry(form, now, weeks, teams, entry):
 @blueprint.route("/edit_entry/<entry_id>", methods=["GET", "POST"])
 @login_required
 def edit_entry(entry_id):
-    """Edit an already filled-in entry. TODO: edit name"""
+    """Edit an already filled-in entry."""
     elist = db.session.query(Entry).filter(and_(Entry.id == entry_id,
                                                 Entry.creator_id == current_user.id)).all()
     if len(elist) != 1:

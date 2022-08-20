@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block css %}
+<style>
+img {
+    max-width: 50px;
+    height: auto;
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+  <h5 class="display-5">{{entry.creator.username}}'s entry "{{entry.name}}"</h5>
+<table class="table table-sm table-striped table-responsive">
+  <thead class="table-primary">
+    <tr>
+      <th scope="col">Team</th>
+      {% for pick in picks %}
+      <th scope="col">{{pick.week}}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">Pick</th>
+      {% for pick in picks %}
+      {% if pick.correct == True %}
+      <td class="table-success">
+      {% elif pick.correct == False %}
+      <td class="table-danger">
+      {% else %}
+      <td>
+      {% endif %}
+      <img src="{{pick.logo}}" alt="{{pick.school}}"></td>
+      {% endfor %}
+    </tr>
+  </tbody>
+</table>
+</div>b
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block js %}
+<script>
+function get_time_zone_offset( ) {
+  var current_date = new Date();
+  return parseInt(-current_date.getTimezoneOffset() / 60);
+}
+</script>
+{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 class="mt-5">{{year}} {{conference}} standings</h1>
+  <h5 class="mt-1">Scoring: Conference game={{intra}} points, non-conference game={{inter}} points.</h5>
+  <h5 class="mt-1">Ties are broken by (1) number of consecutive weeks survived from the start of the season, and (2) by last-edited date</h5>
+  <h5 class="mb-5"><a href="/users/entries">Create or view your entries</a></h5>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead class="table-primary">
+	<tr>
+	  <th scope="col">Entry Name</th>
+	  <th scope="col">Entry Creator</th>
+	  <th scope="col">Entry Score</th>
+	  <th scope="col">Weeks Survived</th>
+	  <th scope="col">Last Updated</th>
+      </thead>
+      {% for E in entries %}
+      <tr>
+	<th scope="row" class="table-primary"> <a href="/view_entry/{{E.id}}">{{E.name}}</a> </th>
+	<td> {{E.creator.username}} </td>
+	<td> {{E.score(intra, inter)}} </td>
+	<td> {{E.survived}} </td>
+	<td> {{E.last_updated}} UTC </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}
