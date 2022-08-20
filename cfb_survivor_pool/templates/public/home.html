@@ -11,18 +11,22 @@
 {% if conferences %}
 <div class="container">
   <div class="table-responsive">
-    <table class="table table-striped table-sm">
+    <table class="table table-striped table-sm table-responsive">
       <thead>
 	<tr>
-	  <th>Conference Standings</th>
-	  <th>Conference Schedule</th>
+	  <th scope="col">Conference</th>
+	  <th scope="col">Conference Standings</th>
+	  <th scope="col">Conference Schedule</th>
+	  <th scope="col">Conference Scores</th>
 	</tr>
       </thead>
       <tbody>
 	{% for conf in conferences %}
 	<tr>
-	  <td><a href="/standings/{{year}}/{{conf}}">{{conf}} Standings</a></td>
-	  <td><a href="/schedule/{{year}}/{{conf}}">{{conf}} Schedule</a></td>
+	  <th scope="row">{{conf}}</th>
+	  <td><a href="/standings/{{year}}/{{conf}}">Leaderboards</a></td>
+	  <td><a href="/schedule/{{year}}/{{conf}}">Schedule</a></td>
+	  <td><a href="/games/{{year}}/{{conf}}">Scores</a></td>
 	</tr>
 	{% endfor %}
       </tbody>

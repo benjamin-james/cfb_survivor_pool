@@ -156,14 +156,32 @@ def get_picks():
     all_picks = db.session.query(Pick).all()
     return render_template("public/picks.html", picks=all_picks)
 
+def render_games(all_games):
+    import pytz
+    return render_template("public/games.html", games=[(g.id, g.home_id, g.away_id, g.home_points, g.away_points, g.home_team, g.away_team, g.start_date.astimezone(pytz.timezone('US/Eastern'))) for g in all_games])
+
 @blueprint.route("/games/<year>")
 def get_games(year):
-    year = dt.datetime.utcnow().year
-    # all_games = db.session.query(Game, Team).filter(and_(Game.season == year,
-    #                                                      or_(Team.id == Game.away_id,
-    #                                                          Team.id == Game.home_id))).all()
-    all_games = db.session.query(Game).filter(Game.start_date > dt.date(year, month=1, day=1)).all()
-    return render_template("public/games.html", games=[(g.id, g.home_id, g.away_id, g.home_points, g.away_points, g.home_team, g.away_team, g.start_date) for g in all_games])
+    all_games = db.session.query(Game).filter(Game.season == year).all()
+    return render_games(all_games)
+
+@blueprint.route("/scores")
+def get_scores():
+    return get_games(dt.datetime.utcnow().year)
+
+@blueprint.route("/games/<year>/<conference>")
+def get_games_conference(year, conference):
+    all_games = Game.query.join(Game.away_team,
+                                Game.home_team,
+                                aliased=True).filter(and_(Game.season == year,
+                                                          or_(Game.away_team.has(conference=conference),
+                                                              Game.home_team.has(conference=conference)))).all()
+    return render_games(all_games)
+
+@blueprint.route("/scores/<conference>")
+def get_scores_conference(conference):
+    return get_games_conference(year=dt.datetime.utcnow().year, conference=conference)
+
 
 @blueprint.route("/update_teams_games/<year>", methods=["GET", "POST"])
 @login_required
