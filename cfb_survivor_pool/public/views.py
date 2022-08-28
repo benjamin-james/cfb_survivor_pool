@@ -214,7 +214,7 @@ def update_teams_games(year):
                               new_games["home_id"].isin(all_ids), :]
     vgk = set(vars(Game).keys()) - set(["away_team", "home_team"])
     vgk.add("game_id")
-    gid_list = [int(x) for x in new_games.loc[~new_games["away_points"].isna() & ~new_games["home_points"].isna(), :].index.values]
+    gid_list = [int(x) for x in new_games.loc[(~new_games["away_points"].isna()) & (~new_games["home_points"].isna()), :].index.values]
     ### 1. Find common games where score needs to be updated AND we have the score
     for game in db.session.query(Game).filter(Game.id.in_(gid_list)):
         game.away_points = int(new_games.loc[game.id, "away_points"])
@@ -222,10 +222,10 @@ def update_teams_games(year):
         game.update(commit=False)
         new_games.drop(game.id, inplace=True)
     db.session.commit()
-    gid_list = [int(x) for x in new_games.index.values]
+    # gid_list = [int(x) for x in new_games.index.values]
     # for game in db.session.query(Game).filter(Game.id.in_(gid_list)):
     #     new_games.drop(game.id, inplace=True)
-    for record in new_games.to_dict("r"):
+    for record in new_games.loc[gid_list, :].to_dict("r"):
         record = {k: v for k, v in record.items() if k in vgk}
         game = Game(**record)
         db.session.merge(game)
