@@ -225,10 +225,11 @@ def update_teams_games(year):
     # gid_list = [int(x) for x in new_games.index.values]
     # for game in db.session.query(Game).filter(Game.id.in_(gid_list)):
     #     new_games.drop(game.id, inplace=True)
-    for record in new_games.loc[gid_list, :].to_dict("r"):
+    for record in new_games.to_dict("r"):
         record = {k: v for k, v in record.items() if k in vgk}
         game = Game(**record)
-        db.session.merge(game)
+        if game.id in gid_list:
+            db.session.merge(game)
     db.session.commit()
     all_games = db.session.query(Game).all()
     return redirect("/games")
