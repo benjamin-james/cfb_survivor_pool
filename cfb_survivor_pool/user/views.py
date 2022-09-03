@@ -64,7 +64,7 @@ def get_entry_selected(teams, team2game, week, entry=None):
         if sat2str(pick.game.saturday) == sat2str(week):
             for team in teams:
                 if pick.team == team and team2game[team] == pick.game:
-                    return team.school
+                    return team
     return None
 
 def _entry_form(conference, now, entry=None):
@@ -100,13 +100,13 @@ def _entry_form(conference, now, entry=None):
         wf.teams.choices = [(t.school, ot.logo) for t, ot in zip(wteams, oteams)]
         wf.teams.name = sat2str(sat)
         wf.teams.render_kw = {"class": "form-check-input"}
-        wf.teams.disabled = [(now >= wtg[t].start_date) or (t in locked_teams) for t in wteams]
+        wf.teams.disabled = [(now >= wtg[t].start_date) or (t.school in locked_teams) for t in wteams]
         sel = get_entry_selected(teams=wteams, team2game=wtg, week=sat, entry=entry)
         if sel is not None:
-            wf.teams.selected = sel
+            wf.teams.selected = sel.school
             if now >= wtg[sel].start_date: ## if game already started, can't make new picks
                 wf.teams.disabled = [True for _ in wteams]
-                locked_teams.add(sel)
+                locked_teams.add(sel.school)
         wf.teams.td_class = ["" if wtg[t].conference_game else "table-secondary"  for t in wteams]
         wflist.append(wf)
         weeks.append(sat2str(sat))
