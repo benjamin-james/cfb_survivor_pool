@@ -68,6 +68,10 @@ def get_entry_selected(teams, team2game, week, entry=None):
     return None
 
 def _entry_form(conference, now, entry=None):
+    """Two conditions to fix:
+    1. disable checking of already picked team
+    2. disable checking of week when pick locked in
+"""
     form = EntryForm()
     """Complete the WTForm in a renderable format"""
     all_games = Game.query.join(Game.away_team,
@@ -78,6 +82,7 @@ def _entry_form(conference, now, entry=None):
     teams = set() ## list of conference teams
     weeks = [] ## list of saturday strings
     wflist = [] ## list of weekform
+    locked_teams = set()
     for sat in sorted(list(set([g.saturday for g in all_games]))):
         wf = WeekForm()
         wteams = set()
@@ -95,10 +100,13 @@ def _entry_form(conference, now, entry=None):
         wf.teams.choices = [(t.school, ot.logo) for t, ot in zip(wteams, oteams)]
         wf.teams.name = sat2str(sat)
         wf.teams.render_kw = {"class": "form-check-input"}
-        wf.teams.disabled = [now >= wtg[t].start_date for t in wteams]
+        wf.teams.disabled = [(now >= wtg[t].start_date) or (t in locked_teams) for t in wteams]
         sel = get_entry_selected(teams=wteams, team2game=wtg, week=sat, entry=entry)
         if sel is not None:
             wf.teams.selected = sel
+            if now >= wtg[sel].start_date: ## if game already started, can't make new picks
+                wf.teams.disabled = [True for _ in wteams]
+                locked_teams.add(sel)
         wf.teams.td_class = ["" if wtg[t].conference_game else "table-secondary"  for t in wteams]
         wflist.append(wf)
         weeks.append(sat2str(sat))
