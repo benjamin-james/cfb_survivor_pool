@@ -126,7 +126,7 @@ def form2entry(form, now, weeks, teams, entry):
     to_change = [{} for _ in all_picks]
     pick_keep = [False for _ in all_picks]
     for i, pick in enumerate(all_picks):
-        if pick.game.start_date >= dt.datetime.utcnow():
+        if pick.game.start_date <= dt.datetime.utcnow():
             pick_keep[i] = True ### keep the pick if already happened
     to_add = []
     ### conditions:
